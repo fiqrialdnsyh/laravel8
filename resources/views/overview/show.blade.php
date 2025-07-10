@@ -99,10 +99,13 @@
                     @else bg-yellow-500 @endif">
                     {{ $overview->approval->approval_by ?? 'Proposed' }}
                 </span>
-                <a href="{{ route('overview.exportPdf', $overview->id) }}"
-                    class="bg-yellow-500 hover:bg-orange-500 text-white px-4 py-2 rounded text-sm font-semibold">
-                    Print PDF
-                </a>
+
+                @if($overview->approval && $overview->approval->approval_by === 'Approved')
+                    <a href="{{ route('overview.exportPdf', $overview->id) }}"
+                        class="bg-yellow-500 hover:bg-orange-500 text-white px-4 py-2 rounded text-sm font-semibold">
+                        Print PDF
+                    </a>
+                @endif
             </div>
         </div>
     </div>
