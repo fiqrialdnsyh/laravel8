@@ -7,6 +7,8 @@ use App\Models\ScreenOverview;
 use App\Models\ScreenItem;
 use App\Models\ScreenApproval;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 
 class ScreenController extends Controller
 {
@@ -35,8 +37,8 @@ class ScreenController extends Controller
             'mobile_phone' => 'nullable|string',
             'driver_name' => 'nullable|string',
 
-            'request_by' => 'nullable|string',
-            'approval_by' => 'nullable|string',
+            'request_by' => 'required|exists:users,username',
+            'approval_by' => 'required|exists:users,username',
         ]);
 
         $overview = ScreenOverview::create([
@@ -93,18 +95,22 @@ class ScreenController extends Controller
 
     // Tampilkan daftar approval
     public function approval(Request $request)
-    {
-        $query = ScreenOverview::with('approval');
+{
+    $user = Auth::user();
 
-        if ($request->has('search')) {
+    $query = ScreenOverview::whereHas('approval', function ($q) use ($user) {
+        $q->where('approval_by', $user->username); // hanya yang ditugaskan ke user ini
+    })->with('approval');
+
+    if ($request->has('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('contract_name', 'like', "%$search%")
-                    ->orWhere('contract_number', 'like', "%$search%")
-                    ->orWhere('reason', 'like', "%$search%")
-                    ->orWhere('destination', 'like', "%$search%");
+                ->orWhere('contract_number', 'like', "%$search%")
+                ->orWhere('reason', 'like', "%$search%")
+                ->orWhere('destination', 'like', "%$search%");
             });
-        }
+    }
 
         $approvals = $query->orderBy('created_at', 'desc')->paginate(10);
 
@@ -168,5 +174,19 @@ class ScreenController extends Controller
         return view('dashboard', compact('approvedCount', 'rejectedCount', 'proposedCount'));
     }
 
+    public function createBringInForm()
+    {
+        $users = User::where('role', 'user')->get(); // Untuk request_by
+        $poscos = User::where('role', 'poscos')->get(); // Untuk approval_by
 
+        return view('bringin', compact('users', 'poscos'));
+    }
+
+    public function bringin()
+    {
+        $users = User::all(); // semua user
+        $poscos = User::where('email', 'like', '%@poscos.com')->get(); // contoh filter berdasarkan email
+
+        return view('bringin', compact('users', 'poscos'));
+    }
 }

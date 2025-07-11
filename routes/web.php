@@ -36,9 +36,8 @@ Route::prefix('poscos')->name('poscos.')->middleware('guest')->group(function ()
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [ScreenController::class, 'dashboard'])->name('dashboard');
 
-    Route::get('/bringin', function () {
-        return view('bringin');
-    })->name('bringin');
+    Route::get('/bringin', [ScreenController::class, 'bringin'])->name('bringin');
+
 
     Route::post('/screen/save', [ScreenController::class, 'store'])->name('screen.save');
 
@@ -67,3 +66,5 @@ Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->na
 Route::post('/register', [RegisterController::class, 'register']);
 
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
+

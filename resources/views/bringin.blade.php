@@ -132,28 +132,34 @@
                 </div>
             </div>
 
-            <!-- Approval Info (tanpa status) -->
+            <!-- Approval Info -->
             <div class="bg-white rounded-lg shadow p-6">
                 <h2 class="font-bold text-lg mb-4">Approval Info</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium">Request By</label>
-                        <select name="request_by" class="mt-1 w-full border rounded px-3 py-2" required>
-                            <option disabled selected>Request By</option>
-                            <option value="Krakatau Posco">Krakatau Posco</option>
-                            <option value="Krakatau Bandar Samudera">Krakatau Bandar Samudera</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium">Approval By</label>
-                        <select name="approval_by" class="mt-1 w-full border rounded px-3 py-2" required>
-                            <option disabled selected>Approval By</option>
-                            <option value="Krakatau Posco">Krakatau Posco</option>
-                            <option value="Krakatau Bandar Samudera">Krakatau Bandar Samudera</option>
+                        <label for="request_by" class="block text-sm font-medium text-gray-700">Request By</label>
+                            <select name="request_by" id="request_by" required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <option value="">-- Pilih Pengaju --</option>
+                            @foreach($users as $user)
+                                <option value="{{ $user->username }}">{{ $user->username }}</option>
+                            @endforeach
+                    </select>
+            </div>
+
+            <div>
+                <label for="approval_by" class="block text-sm font-medium text-gray-700">Approval By (Poscos)</label>
+                    <select name="approval_by" id="approval_by"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="">-- Pilih Approver Poscos --</option>
+                            @foreach($poscos as $user)
+                                <option value="{{ $user->username }}">{{ $user->username }}</option>
+                            @endforeach
                         </select>
                     </div>
                 </div>
             </div>
+
 
             <div class="flex justify-end mt-4">
                 <button type="submit" class="bg-indigo-500 text-white px-10 py-3 rounded shadow hover:bg-indigo-600">

@@ -85,29 +85,61 @@
         </div>
 
         <!-- Footer Section -->
-        <div class="flex justify-between items-center">
-            <div class="bg-blue-900 text-white p-4 rounded text-sm">
-                <p class="uppercase text-xs font-semibold">Request by</p>
-                <p class="font-bold">{{ $overview->approval->request_by ?? '-' }}</p>
-                <p class="text-xs mt-1">{{ $overview->created_at->format('d F Y H:i:s') }}</p>
-            </div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
+    <!-- Request By -->
+    <div class="bg-blue-900 text-white p-4 rounded text-sm">
+        <p class="uppercase text-xs font-semibold">Request by</p>
+        <p class="font-bold">{{ $overview->approval->request_by ?? '-' }}</p>
+        <p class="text-xs mt-1">
+        {{ \Carbon\Carbon::parse($overview->approval->updated_at)->format('d F Y H:i:s') }}
+        </p>
+    </div>
 
-            <div class="flex items-center gap-2">
-                <span class="px-4 py-2 rounded text-white text-sm font-semibold
-                    @if($overview->approval->approval_by == 'Approved') bg-green-500
-                    @elseif($overview->approval->approval_by == 'Reject') bg-red-500
-                    @else bg-yellow-500 @endif">
-                    {{ $overview->approval->approval_by ?? 'Proposed' }}
-                </span>
+    <!-- Approved or Rejected By -->
+    @php
+        $approvalStatus = $overview->approval->approval_by ?? 'Proposed';
+        $isApproved = $approvalStatus === 'Approved';
+        $isRejected = $approvalStatus === 'Reject';
+        $boxColor = $isApproved ? 'bg-blue-900' : ($isRejected ? 'bg-red-700' : 'bg-gray-400');
+    @endphp
 
-                @if($overview->approval && $overview->approval->approval_by === 'Approved')
-                    <a href="{{ route('overview.exportPdf', $overview->id) }}"
-                        class="bg-yellow-500 hover:bg-orange-500 text-white px-4 py-2 rounded text-sm font-semibold">
-                        Print PDF
-                    </a>
-                @endif
-            </div>
+    @if(!$isRejected && !$isApproved)
+        <div class="bg-gray-200 text-black p-4 rounded text-sm flex items-center justify-center">
+            <p class="text-center font-semibold">Waiting for Approval</p>
         </div>
+    @else
+        <div class="{{ $boxColor }} text-white p-4 rounded text-sm">
+            <p class="uppercase text-xs font-semibold">
+                {{ $isApproved ? 'Approved by' : 'Rejected by' }}
+            </p>
+            <p class="font-bold">{{ $overview->approval->approved_by_username ?? '-' }}</p>
+            <p class="text-xs mt-1">
+            {{ \Carbon\Carbon::parse($overview->approval->updated_at)->format('d F Y H:i:s') }}
+            </p>
+        </div>
+    @endif
+
+    <!-- Status + Action -->
+    <div class="p-4 rounded text-sm border border-white">
+        <p class="uppercase text-xs font-semibold mb-2">Status:</p>
+        <div class="flex flex-wrap gap-2">
+            <span class="px-4 py-2 rounded text-white text-sm font-semibold
+                @if($isApproved) bg-green-500
+                @elseif($isRejected) bg-red-500
+                @else bg-yellow-500 @endif">
+                {{ $approvalStatus }}
+            </span>
+
+            @if($isApproved)
+                <a href="{{ route('overview.exportPdf', $overview->id) }}"
+                    class="bg-yellow-500 hover:bg-orange-500 text-white px-4 py-2 rounded text-sm font-semibold">
+                    Print PDF
+                </a>
+            @endif
+        </div>
+    </div>
+</div>
+
     </div>
 </div>
 @endsection
