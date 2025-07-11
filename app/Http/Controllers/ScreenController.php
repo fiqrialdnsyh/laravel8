@@ -99,23 +99,24 @@ class ScreenController extends Controller
     $user = Auth::user();
 
     $query = ScreenOverview::whereHas('approval', function ($q) use ($user) {
-        $q->where('approval_by', $user->username); // hanya yang ditugaskan ke user ini
+        $q->where('approval_by', $user->username)
+          ->whereNull('approved_by_username'); // hanya yang belum diproses
     })->with('approval');
 
     if ($request->has('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('contract_name', 'like', "%$search%")
+        $search = $request->search;
+        $query->where(function ($q) use ($search) {
+            $q->where('contract_name', 'like', "%$search%")
                 ->orWhere('contract_number', 'like', "%$search%")
                 ->orWhere('reason', 'like', "%$search%")
                 ->orWhere('destination', 'like', "%$search%");
-            });
+        });
     }
 
-        $approvals = $query->orderBy('created_at', 'desc')->paginate(10);
+    $approvals = $query->orderBy('created_at', 'desc')->paginate(10);
 
-        return view('approval', compact('approvals'));
-    }
+    return view('approval', compact('approvals'));
+}
 
     // Tampilkan detail approval
     public function showApproval($id)
@@ -126,27 +127,34 @@ class ScreenController extends Controller
 
     // Setujui dokumen
     public function approve($id)
-    {
-        $approval = ScreenApproval::where('screen_overview_id', $id)->firstOrFail();
-        $approval->update(['approval_by' => 'Approved']);
+{
+    $approval = ScreenApproval::where('screen_overview_id', $id)->firstOrFail();
+    $approval->update([
+        'approval_by' => 'Approved',
+        'approved_by_username' => Auth::user()->username, // <== ini bagian pentingnya
+    ]);
 
-        return redirect()->route('approval')->with('success', 'Dokumen berhasil disetujui.');
-    }
+    return redirect()->route('approval')->with('success', 'Dokumen berhasil disetujui.');
+}
+
 
     // Tolak dokumen
     public function reject(Request $request, $id)
-    {
-        $request->validate([
-            'rejected_reason' => 'required|string|max:255',
-        ]);
+{
+    $request->validate([
+        'rejected_reason' => 'required|string|max:255',
+    ]);
 
-        $approval = ScreenApproval::where('screen_overview_id', $id)->firstOrFail();
-        $approval->update([
-            'approval_by' => 'Reject',
-            'rejected_reason' => $request->rejected_reason,
-        ]);
-        return redirect()->route('approval')->with('success', 'Dokumen berhasil ditolak.');
-    }
+    $approval = ScreenApproval::where('screen_overview_id', $id)->firstOrFail();
+    $approval->update([
+        'approval_by' => 'Reject',
+        'rejected_reason' => $request->rejected_reason,
+        'approved_by_username' => auth()->user()->username
+    ]);
+
+    return redirect()->route('approval')->with('success', 'Dokumen berhasil ditolak.');
+}
+
 
     // Tampilkan detail overview
     public function showOverview($id)

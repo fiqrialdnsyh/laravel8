@@ -14,6 +14,7 @@ class ScreenApproval extends Model
         'request_by',
         'approval_by',
         'rejected_reason',
+        'approved_by_username',
     ];
 
     public function overview()
